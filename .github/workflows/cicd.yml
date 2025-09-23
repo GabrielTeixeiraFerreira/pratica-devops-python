@@ -31,9 +31,10 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          npx semantic-release --branches main --dry-run > release.log
-          VERSION=$(grep -oP 'The next release version is \K[0-9]+\.[0-9]+\.[0-9]+' release.log || echo "")
+          # Rodar semantic-release e capturar a versão em uma variável
+          VERSION=$(npx semantic-release --no-ci --format=json | jq -r '.[0].nextRelease.version')
           echo "version=$VERSION" >> $GITHUB_OUTPUT
+
 
       # ================================
       # Etapa 2: Login DockerHub
