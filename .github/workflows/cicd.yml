@@ -26,14 +26,18 @@ jobs:
       # ================================
       # Etapa 1: Gerar versão semântica
       # ================================
-      - name: Run semantic-release
+      - name: Run semantic-release and save version
         id: semantic
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          # Rodar semantic-release e capturar a versão em uma variável
-          VERSION=$(npx semantic-release --no-ci --format=json | jq -r '.[0].nextRelease.version')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          npx semantic-release --no-ci \
+            --plugins \
+              "@semantic-release/commit-analyzer" \
+              "@semantic-release/release-notes-generator" \
+              "@semantic-release/github" \
+              ["@semantic-release/exec", {"prepareCmd":"echo ${nextRelease.version} > version.txt"}]
+          echo "version=$(cat version.txt)" >> $GITHUB_OUTPUT
 
 
       # ================================
