@@ -15,29 +15,16 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 18
-
-      - name: Install semantic-release
-        run: npm install -g semantic-release @semantic-release/git @semantic-release/changelog @semantic-release/github
-
       # ================================
-      # Etapa 1: Gerar versão semântica
+      # Etapa 1: Gerar Tag com versão
       # ================================
-      - name: Run semantic-release and save version
-        id: semantic
+      - name: Bump version and push tag
+        id: tag
+        uses: anothrNick/github-tag-action@1.75.0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          npx semantic-release --no-ci \
-            --plugins \
-              "@semantic-release/commit-analyzer" \
-              "@semantic-release/release-notes-generator" \
-              "@semantic-release/github" \
-              ["@semantic-release/exec", {"prepareCmd":"echo ${nextRelease.version} > version.txt"}]
-          echo "version=$(cat version.txt)" >> $GITHUB_OUTPUT
+          WITH_V: false       # false -> gera 1.0.0 em vez de v1.0.0
+          DEFAULT_BUMP: patch # patch/minor/major se não houver [#major] etc. no commit
 
 
       # ================================
@@ -57,4 +44,4 @@ jobs:
         with:
           context: .
           push: true
-          tags: ${{ secrets.DOCKERHUB_USERNAME }}/pratica-devops-python:latest, ${{ secrets.DOCKERHUB_USERNAME }}/pratica-devops-python:${{ steps.semantic.outputs.version }}
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/pratica-devops-python:latest, ${{ secrets.DOCKERHUB_USERNAME }}/pratica-devops-python:${{ steps.tag.outputs.new_tag }}
